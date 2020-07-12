@@ -14,7 +14,7 @@
 
 # ## _Setup_ geral
 
-# In[1]:
+# In[84]:
 
 
 import pandas as pd
@@ -25,10 +25,10 @@ import seaborn as sns
 from statsmodels.distributions.empirical_distribution import ECDF
 
 
-# In[2]:
+# In[85]:
 
 
-get_ipython().run_line_magic('matplotlib', 'inline')
+#%matplotlib inline
 
 from IPython.core.pylabtools import figsize
 
@@ -42,7 +42,7 @@ sns.set()
 
 # ### _Setup_ da parte 1
 
-# In[3]:
+# In[86]:
 
 
 np.random.seed(42)
@@ -53,7 +53,7 @@ dataframe = pd.DataFrame({"normal": sct.norm.rvs(20, 4, size=10000),
 
 # ## Inicie sua análise a partir da parte 1 a partir daqui
 
-# In[4]:
+# In[87]:
 
 
 # Sua análise da parte 1 começa aqui.
@@ -65,12 +65,14 @@ dataframe = pd.DataFrame({"normal": sct.norm.rvs(20, 4, size=10000),
 # 
 # Em outra palavras, sejam `q1_norm`, `q2_norm` e `q3_norm` os quantis da variável `normal` e `q1_binom`, `q2_binom` e `q3_binom` os quantis da variável `binom`, qual a diferença `(q1_norm - q1 binom, q2_norm - q2_binom, q3_norm - q3_binom)`?
 
-# In[5]:
+# In[98]:
 
 
 def q1():
-    # Retorne aqui o resultado da questão 1.
-    pass
+
+    q_norm = dataframe['normal'].quantile([.25,.50,.75])
+    q_binom = dataframe['binomial'].quantile([.25,.50,.75])
+    return tuple(round(q_norm-q_binom,3))
 
 
 # Para refletir:
@@ -83,12 +85,14 @@ def q1():
 # 
 # Considere o intervalo $[\bar{x} - s, \bar{x} + s]$, onde $\bar{x}$ é a média amostral e $s$ é o desvio padrão. Qual a probabilidade nesse intervalo, calculada pela função de distribuição acumulada empírica (CDF empírica) da variável `normal`? Responda como uma único escalar arredondado para três casas decimais.
 
-# In[6]:
+# In[99]:
 
 
 def q2():
-    # Retorne aqui o resultado da questão 2.
-    pass
+    prob = ECDF(dataframe.normal)
+    df_mean = dataframe.normal.mean()
+    df_std = dataframe.normal.std()
+    return float(np.round(prob(df_mean + df_std) - prob(df_mean - df_std),3))
 
 
 # Para refletir:
@@ -102,12 +106,13 @@ def q2():
 # 
 # Em outras palavras, sejam `m_binom` e `v_binom` a média e a variância da variável `binomial`, e `m_norm` e `v_norm` a média e a variância da variável `normal`. Quais as diferenças `(m_binom - m_norm, v_binom - v_norm)`?
 
-# In[7]:
+# In[100]:
 
 
 def q3():
-    # Retorne aqui o resultado da questão 3.
-    pass
+    m_norm, m_binom =  dataframe.mean()
+    v_norm, v_binom =  dataframe.var()
+    return tuple(np.round((m_binom - m_norm, v_binom - v_norm),3))
 
 
 # Para refletir:
@@ -119,7 +124,7 @@ def q3():
 
 # ### _Setup_ da parte 2
 
-# In[8]:
+# In[91]:
 
 
 stars = pd.read_csv("pulsar_stars.csv")
@@ -136,10 +141,17 @@ stars.loc[:, "target"] = stars.target.astype(bool)
 
 # ## Inicie sua análise da parte 2 a partir daqui
 
-# In[9]:
+# In[92]:
 
 
 # Sua análise da parte 2 começa aqui.
+
+
+from scipy import stats
+
+stars_filt = stars.loc[stars['target'] == False ,'mean_profile']
+#padronização
+target_stars = stats.zscore(stars_filt)
 
 
 # ## Questão 4
@@ -155,12 +167,13 @@ stars.loc[:, "target"] = stars.target.astype(bool)
 # 
 # Quais as probabilidade associadas a esses quantis utilizando a CDF empírica da variável `false_pulsar_mean_profile_standardized`? Responda como uma tupla de três elementos arredondados para três casas decimais.
 
-# In[10]:
+# In[93]:
 
 
 def q4():
-    # Retorne aqui o resultado da questão 4.
-    pass
+    quants = stats.norm.ppf([0.8, 0.90, 0.95])
+    ecdf = ECDF(target_stars)
+    return tuple(ecdf([quants])[0].round(3))
 
 
 # Para refletir:
@@ -172,12 +185,13 @@ def q4():
 # 
 # Qual a diferença entre os quantis Q1, Q2 e Q3 de `false_pulsar_mean_profile_standardized` e os mesmos quantis teóricos de uma distribuição normal de média 0 e variância 1? Responda como uma tupla de três elementos arredondados para três casas decimais.
 
-# In[11]:
+# In[94]:
 
 
 def q5():
-    # Retorne aqui o resultado da questão 5.
-    pass
+    quant_vals = np.quantile(target_stars, [0.25,0.5,0.75])
+    q_norm = stats.norm.ppf([0.25, 0.50, 0.75])
+    return tuple((quant_vals - q_norm).round(3))
 
 
 # Para refletir:
